@@ -53,8 +53,10 @@ export const CreatePackagePage = () => {
   const [customers, setCustomers] = useState<UserOption[]>([]);
   const [couriers, setCouriers] = useState<UserOption[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [usersError, setUsersError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitDetails, setSubmitDetails] = useState<{ field: string; message: string }[]>([]);
   const [pinPosition, setPinPosition] = useState<[number, number] | null>(null);
 
   const [form, setForm] = useState({
@@ -77,6 +79,7 @@ export const CreatePackagePage = () => {
         setCouriers(courRes.users as UserOption[]);
       } catch (err) {
         console.error('Failed to load users', err);
+        setUsersError('No se pudo cargar la lista de clientes y repartidores. ¿Está el servidor activo?');
       } finally {
         setIsLoadingUsers(false);
       }
@@ -91,24 +94,38 @@ export const CreatePackagePage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
+    setSubmitDetails([]);
 
+    // Client-side guards
     if (!form.customer_id) { setSubmitError('Selecciona un cliente.'); return; }
+    if (form.destination_address.trim().length < 5) { setSubmitError('La dirección de destino debe tener al menos 5 caracteres.'); return; }
     if (!pinPosition) { setSubmitError('Toca el mapa para fijar el punto de entrega.'); return; }
+
+    // Build a safe location_reference: backend requires min 3 chars
+    const locationRef = form.location_reference.trim().length >= 3
+      ? form.location_reference.trim()
+      : 'Sin referencia específica';
 
     setIsSubmitting(true);
     try {
       await api.post('/packages', {
         customer_id: form.customer_id,
-        courier_id: form.courier_id || undefined,
-        destination_address: form.destination_address,
-        location_reference: form.location_reference || 'Sin referencia',
+        // Only include courier_id if a valid value is selected
+        ...(form.courier_id ? { courier_id: form.courier_id } : {}),
+        destination_address: form.destination_address.trim(),
+        location_reference: locationRef,
         latitude: pinPosition[0],
         longitude: pinPosition[1],
-        cash_to_collect: Number(form.cash_to_collect) || 0,
+        cash_to_collect: parseFloat(form.cash_to_collect) || 0,
       });
       navigate('/dashboard');
     } catch (err: any) {
-      setSubmitError(err.response?.data?.message || 'Error al crear el paquete.');
+      const data = err.response?.data;
+      setSubmitError(data?.message || 'Error al crear el paquete.');
+      // Show field-level Zod errors if available
+      if (Array.isArray(data?.errors)) {
+        setSubmitDetails(data.errors);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -228,9 +245,26 @@ export const CreatePackagePage = () => {
             )}
           </div>
 
+          {/* Error display with field-level details */}
           {submitError && (
-            <div className="bg-red-900/20 border border-red-800 text-danger text-sm rounded-lg p-3">
-              {submitError}
+            <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">
+              <p className="text-danger text-sm font-medium">{submitError}</p>
+              {submitDetails.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {submitDetails.map((d, i) => (
+                    <li key={i} className="text-xs text-red-300">
+                      <span className="font-mono text-red-400">{d.field}:</span> {d.message}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {/* Users load error */}
+          {usersError && (
+            <div className="bg-yellow-900/20 border border-yellow-800 text-yellow-300 text-xs rounded-lg p-3">
+              ⚠️ {usersError}
             </div>
           )}
 
