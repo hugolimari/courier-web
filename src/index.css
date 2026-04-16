@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
 
 /* Class-based dark mode — toggled via .dark on <html> */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -11,10 +12,14 @@
   --color-primary-700: #1d4ed8;
 
   /* Neutral/Surface — Dark mode surfaces */
-  --color-surface-900: #0f172a;    /* darkest background */
-  --color-surface-800: #1e293b;    /* card backgrounds */
-  --color-surface-700: #334155;    /* input backgrounds */
-  --color-surface-600: #475569;    /* borders */
+  --color-surface-900: #0f172a;
+  /* darkest background */
+  --color-surface-800: #1e293b;
+  /* card backgrounds */
+  --color-surface-700: #334155;
+  /* input backgrounds */
+  --color-surface-600: #475569;
+  /* borders */
 
   /* Accent colors */
   --color-success: #22c55e;
