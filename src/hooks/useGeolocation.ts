@@ -7,6 +7,20 @@ interface GeolocationState {
   isLoading: boolean;
 }
 
+// Human-readable messages per GeolocationPositionError code
+function getGpsErrorMessage(err: GeolocationPositionError): string {
+  switch (err.code) {
+    case GeolocationPositionError.PERMISSION_DENIED:
+      return 'PERMISSION_DENIED';
+    case GeolocationPositionError.POSITION_UNAVAILABLE:
+      return 'POSITION_UNAVAILABLE';
+    case GeolocationPositionError.TIMEOUT:
+      return 'TIMEOUT';
+    default:
+      return `GPS_ERROR: ${err.message}`;
+  }
+}
+
 export const useGeolocation = () => {
   const [state, setState] = useState<GeolocationState>({
     latitude: null,
@@ -18,7 +32,7 @@ export const useGeolocation = () => {
   const fetchLocation = (): Promise<{ latitude: number; longitude: number }> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        const msg = 'La geolocalización no está soportada por este navegador.';
+        const msg = 'NO_SUPPORT';
         setState(prev => ({ ...prev, error: msg }));
         reject(new Error(msg));
         return;
@@ -33,9 +47,9 @@ export const useGeolocation = () => {
           resolve({ latitude, longitude });
         },
         (err) => {
-          const msg = `Error de GPS: ${err.message}`;
-          setState({ latitude: null, longitude: null, error: msg, isLoading: false });
-          reject(new Error(msg));
+          const code = getGpsErrorMessage(err);
+          setState({ latitude: null, longitude: null, error: code, isLoading: false });
+          reject(new Error(code));
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );

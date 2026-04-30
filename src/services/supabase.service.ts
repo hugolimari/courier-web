@@ -35,7 +35,7 @@ export async function uploadDeliveryProof(
   imageBlob: Blob
 ): Promise<string> {
   const anonKey = getAnonKey();
-  const filePath = `${packageId}/${Date.now()}.jpg`;
+  const filePath = `${packageId}.jpg`;
   const uploadUrl = `${SUPABASE_PROJECT_URL}/storage/v1/object/${BUCKET}/${filePath}`;
 
   const response = await fetch(uploadUrl, {

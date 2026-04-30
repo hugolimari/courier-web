@@ -20,6 +20,68 @@ const STEP_CONFIG: Record<UploadStep, { label: string; icon: string }> = {
 
 const ORDERED_STEPS: UploadStep[] = ['gps', 'compressing', 'uploading', 'saving'];
 
+// ── GPS error → user-facing instructions ─────────────────────────────────────
+interface GpsErrorInfo {
+  title: string;
+  steps: string[];
+}
+
+const GPS_ERROR_INFO: Record<string, GpsErrorInfo> = {
+  PERMISSION_DENIED: {
+    title: '📍 Permiso de ubicación denegado',
+    steps: [
+      'Toca el ícono de candado o información (ℹ️) en la barra de dirección.',
+      'Busca "Ubicación" o "Location" y cámbialo a "Permitir".',
+      'Recarga la página e intenta de nuevo.',
+    ],
+  },
+  POSITION_UNAVAILABLE: {
+    title: '📍 No se puede determinar tu ubicación',
+    steps: [
+      'Activa el GPS de tu celular (configuración rápida o ajustes).',
+      'Si estás en un espacio cerrado, sal o acércate a una ventana.',
+      'Intenta de nuevo una vez activado.',
+    ],
+  },
+  TIMEOUT: {
+    title: '📍 Tiempo de espera agotado',
+    steps: [
+      'Tu GPS tardó demasiado en responder.',
+      'Asegúrate de tener el GPS activo y buena señal.',
+      'Intenta de nuevo.',
+    ],
+  },
+  NO_SUPPORT: {
+    title: '📍 GPS no disponible',
+    steps: [
+      'Tu navegador no soporta geolocalización.',
+      'Usa Chrome o Safari en tu celular.',
+    ],
+  },
+};
+
+// ── GpsErrorCard component ────────────────────────────────────────────────────
+const GpsErrorCard = ({ errorCode }: { errorCode: string }) => {
+  const info = GPS_ERROR_INFO[errorCode] ?? {
+    title: '📍 Error de ubicación',
+    steps: [`Detalle técnico: ${errorCode}`],
+  };
+
+  return (
+    <div className="bg-amber-900/20 border border-amber-700 rounded-xl p-4">
+      <p className="text-amber-300 font-semibold text-sm mb-3">{info.title}</p>
+      <ol className="flex flex-col gap-1.5">
+        {info.steps.map((step, i) => (
+          <li key={i} className="flex gap-2 text-xs text-amber-200/80">
+            <span className="text-amber-500 font-bold shrink-0">{i + 1}.</span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+};
+
 // ── Page Component ────────────────────────────────────────────────────────────
 export const DeliverPackagePage = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +95,7 @@ export const DeliverPackagePage = () => {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploadStep, setUploadStep]     = useState<UploadStep>('idle');
   const [error, setError]               = useState<string | null>(null);
+  const [gpsErrorCode, setGpsErrorCode] = useState<string | null>(null);
 
   const isSubmitting = uploadStep !== 'idle';
 
@@ -40,7 +103,6 @@ export const DeliverPackagePage = () => {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Revoke previous preview URL to avoid memory leaks
     if (photoPreview) URL.revokeObjectURL(photoPreview);
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
@@ -56,8 +118,8 @@ export const DeliverPackagePage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setGpsErrorCode(null);
 
-    // Client-side validation
     if (!receiverName.trim()) { setError('El nombre del receptor es requerido.'); return; }
     if (!receiverCi.trim())   { setError('La cédula de identidad es requerida.'); return; }
     if (!photoFile)            { setError('Debes tomar una foto como evidencia de la entrega.'); return; }
@@ -79,7 +141,7 @@ export const DeliverPackagePage = () => {
       setUploadStep('uploading');
       const image_url = await uploadDeliveryProof(id!, compressedBlob);
 
-      // 4. POST delivery record to our backend (atomic transaction)
+      // 4. POST delivery record to our backend (atomic transaction in PostgreSQL)
       setUploadStep('saving');
       await api.post(`/packages/${id}/deliver`, {
         receiver_name: receiverName.trim(),
@@ -92,7 +154,13 @@ export const DeliverPackagePage = () => {
       navigate('/dashboard', { replace: true });
 
     } catch (err: any) {
-      setError(err.response?.data?.message ?? err.message ?? 'Error inesperado al registrar la entrega.');
+      // GPS-specific errors get their own instructional card
+      const gpsErrorCodes = ['PERMISSION_DENIED', 'POSITION_UNAVAILABLE', 'TIMEOUT', 'NO_SUPPORT'];
+      if (gpsErrorCodes.includes(err.message)) {
+        setGpsErrorCode(err.message);
+      } else {
+        setError(err.response?.data?.message ?? err.message ?? 'Error inesperado al registrar la entrega.');
+      }
     } finally {
       setUploadStep('idle');
     }
@@ -173,7 +241,6 @@ export const DeliverPackagePage = () => {
                 <span className="text-xs text-gray-500">Toca para abrir la cámara trasera</span>
               </button>
             )}
-            {/* capture="environment" = rear camera on mobile */}
             <input
               ref={fileInputRef}
               type="file"
@@ -184,10 +251,10 @@ export const DeliverPackagePage = () => {
             />
           </div>
 
-          {/* Progress tracker — only visible while submitting */}
+          {/* Progress tracker — visible while submitting */}
           {isSubmitting && (
             <div className="bg-surface-800 border border-surface-700 rounded-xl p-4">
-              <p className="text-xs text-gray-400 mb-3 font-medium">Progreso de la entrega</p>
+              <p className="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wide">Progreso</p>
               <div className="flex flex-col gap-2.5">
                 {ORDERED_STEPS.map((step) => {
                   const currentIdx = ORDERED_STEPS.indexOf(uploadStep);
@@ -197,7 +264,7 @@ export const DeliverPackagePage = () => {
 
                   return (
                     <div key={step} className="flex items-center gap-3">
-                      <span className={`text-sm w-4 text-center transition-colors ${
+                      <span className={`text-sm w-5 text-center transition-colors ${
                         isDone    ? 'text-green-400' :
                         isCurrent ? 'text-primary-400 animate-pulse' :
                                     'text-surface-600'
@@ -218,14 +285,17 @@ export const DeliverPackagePage = () => {
             </div>
           )}
 
-          {/* Hint — only when idle */}
-          {!isSubmitting && (
+          {/* GPS instructions card */}
+          {gpsErrorCode && <GpsErrorCard errorCode={gpsErrorCode} />}
+
+          {/* Hint — only when idle and no GPS error */}
+          {!isSubmitting && !gpsErrorCode && (
             <p className="text-xs text-gray-500 text-center px-2">
               📡 Al confirmar se capturará tu GPS y se subirá la foto como evidencia oficial.
             </p>
           )}
 
-          {/* Error */}
+          {/* Generic error */}
           {error && (
             <div className="bg-red-900/20 border border-red-800 text-danger text-sm rounded-lg p-3">
               {error}
