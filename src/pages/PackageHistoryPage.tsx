@@ -6,6 +6,7 @@ import { userService } from '../services/user.service';
 import { Badge, STATUS_LABELS } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
+import { DeliveryMiniMap } from '../components/ui/DeliveryMiniMap';
 import type { Package, PackageFilters, PackageStatus } from '../types/package';
 
 // ── Proof Image Modal ─────────────────────────────────────────────────────────
@@ -56,6 +57,16 @@ const ProofModal = ({ pkg, onClose }: ProofModalProps) => (
         <Row label="Destino" value={pkg.destination_address} />
         {pkg.courier_name && <Row label="Repartidor" value={pkg.courier_name} />}
       </div>
+
+      {/* Delivery GPS location */}
+      {pkg.proof_delivery_point && (
+        <div className="px-4 pb-4">
+          <DeliveryMiniMap
+            geoJson={pkg.proof_delivery_point}
+            label="GPS confirmado al entregar"
+          />
+        </div>
+      )}
     </div>
   </div>
 );

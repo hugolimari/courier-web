@@ -59,5 +59,6 @@ export interface PublicTrackingResult {
   updated_at: string;
   proof_image_url: string | null;
   proof_receiver_name: string | null;
+  proof_delivery_point: string | null; // GeoJSON point from PostGIS
   proof_created_at: string | null;
 }

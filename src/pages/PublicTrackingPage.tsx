@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { packageService } from '../services/package.service';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { DeliveryMiniMap } from '../components/ui/DeliveryMiniMap';
 import type { PublicTrackingResult } from '../types/package';
 
 // Timeline of states in order
@@ -190,6 +191,16 @@ export const PublicTrackingPage = () => {
                   </div>
                 )}
               </div>
+
+              {/* GPS delivery location */}
+              {result.proof_delivery_point && (
+                <div className="px-4 pb-4">
+                  <DeliveryMiniMap
+                    geoJson={result.proof_delivery_point}
+                    label="Ubicación GPS de la entrega"
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
