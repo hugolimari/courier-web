@@ -4,23 +4,27 @@ import { DashboardPage } from './pages/DashboardPage';
 import { CreatePackagePage } from './pages/CreatePackagePage';
 import { PackageMapPage } from './pages/PackageMapPage';
 import { DeliverPackagePage } from './pages/DeliverPackagePage';
+import { PackageHistoryPage } from './pages/PackageHistoryPage';
+import { PublicTrackingPage } from './pages/PublicTrackingPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
     <Routes>
-      {/* Public */}
+      {/* Public routes — no authentication required */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/track" element={<PublicTrackingPage />} />
 
-      {/* Protected */}
+      {/* Protected routes — JWT required */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/packages/new" element={<CreatePackagePage />} />
-        <Route path="/packages/:id/map" element={<PackageMapPage />} />
-        <Route path="/packages/:id/deliver" element={<DeliverPackagePage />} />
+        <Route path="/dashboard"             element={<DashboardPage />} />
+        <Route path="/history"               element={<PackageHistoryPage />} />
+        <Route path="/packages/new"          element={<CreatePackagePage />} />
+        <Route path="/packages/:id/map"      element={<PackageMapPage />} />
+        <Route path="/packages/:id/deliver"  element={<DeliverPackagePage />} />
       </Route>
 
-      {/* Default */}
+      {/* Default redirect */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

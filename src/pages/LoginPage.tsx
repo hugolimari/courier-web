@@ -81,6 +81,18 @@ export const LoginPage = () => {
             Iniciar Sesión
           </Button>
         </form>
+
+        {/* Public tracking link — no login required */}
+        <div className="mt-6 pt-5 border-t border-surface-700 text-center">
+          <p className="text-gray-500 text-xs mb-3">¿Solo quieres saber dónde está tu paquete?</p>
+          <button
+            type="button"
+            onClick={() => navigate('/track')}
+            className="text-primary-400 text-sm font-medium hover:text-primary-300 transition-colors underline-offset-2 hover:underline"
+          >
+            📦 Rastrear mi paquete
+          </button>
+        </div>
       </div>
     </div>
   );

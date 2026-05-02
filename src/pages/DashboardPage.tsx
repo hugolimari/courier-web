@@ -74,6 +74,13 @@ export const DashboardPage = () => {
             )}
             <Button
               variant="outline"
+              onClick={() => navigate('/history')}
+              className="text-xs px-3 py-1"
+            >
+              📋 Historial
+            </Button>
+            <Button
+              variant="outline"
               onClick={fetchPackages}
               isLoading={isLoading}
               className="text-xs px-3 py-1"
