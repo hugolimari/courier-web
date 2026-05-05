@@ -47,6 +47,11 @@ export const PackageCard = ({ pkg, onUpdateStatus }: PackageCardProps) => {
       <div className="flex justify-between items-start gap-2">
         <div className="min-w-0">
           <h3 className="text-white font-bold tracking-tight font-mono text-sm">{pkg.tracking_number}</h3>
+          {pkg.client_code && (
+            <p className="text-xs text-primary-500/80 mt-0.5 truncate">
+              🏷️ Ref: <span className="font-mono">{pkg.client_code}</span>
+            </p>
+          )}
           {pkg.location_reference && pkg.location_reference !== 'Sin referencia' && (
             <p className="text-xs text-gray-500 mt-0.5 truncate">📌 {pkg.location_reference}</p>
           )}

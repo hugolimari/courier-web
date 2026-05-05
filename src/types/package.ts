@@ -13,6 +13,7 @@ export interface Package {
   id: string;
   company_id: string;
   tracking_number: string;
+  client_code: string | null;  // optional client's own reference code
   customer_id: string;
   courier_id: string | null;
   destination_address: string;

@@ -267,6 +267,11 @@ const PackageHistoryCard = ({ pkg, onViewProof }: CardProps) => {
       <div className="flex justify-between items-start gap-2">
         <div className="min-w-0">
           <p className="font-mono text-sm font-bold text-white truncate">{pkg.tracking_number}</p>
+          {pkg.client_code && (
+            <p className="text-xs text-primary-500/80 mt-0.5 truncate">
+              🏷️ Ref. cliente: <span className="font-mono">{pkg.client_code}</span>
+            </p>
+          )}
           <p className="text-xs text-gray-500 mt-0.5 truncate">{pkg.destination_address}</p>
         </div>
         <Badge status={pkg.status} />

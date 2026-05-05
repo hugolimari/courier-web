@@ -138,6 +138,7 @@ export const CreatePackagePage = () => {
   const [form, setForm] = useState({
     customer_id: '',
     courier_id: '',
+    client_code: '',
     destination_address: '',
     location_reference: '',
     cash_to_collect: '',
@@ -203,7 +204,8 @@ export const CreatePackagePage = () => {
     try {
       await api.post('/packages', {
         customer_id: form.customer_id,
-        ...(form.courier_id ? { courier_id: form.courier_id } : {}),
+        ...(form.courier_id   ? { courier_id:   form.courier_id.trim()   } : {}),
+        ...(form.client_code.trim() ? { client_code: form.client_code.trim() } : {}),
         destination_address: form.destination_address.trim(),
         location_reference: locationRef,
         latitude: pinPosition[0],
@@ -277,6 +279,15 @@ export const CreatePackagePage = () => {
               ))}
             </select>
           </div>
+
+          {/* Client code */}
+          <Input
+            label="Código del cliente (opcional)"
+            name="client_code"
+            placeholder="ORD-001, PEDIDO-445…"
+            value={form.client_code}
+            onChange={handleField}
+          />
 
           <Input
             label="Dirección de destino *"
