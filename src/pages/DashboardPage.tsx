@@ -54,9 +54,16 @@ export const DashboardPage = () => {
             <span className="capitalize">{user?.role}</span> — {user?.first_name} {user?.last_name}
           </p>
         </div>
-        <Button variant="outline" className="text-xs px-3 py-1" onClick={logout}>
-          Salir
-        </Button>
+        <div className="flex gap-2 items-center">
+          {user?.role === 'ADMIN' && (
+            <Button variant="outline" className="text-xs px-3 py-1" onClick={() => navigate('/users')}>
+              👥 Usuarios
+            </Button>
+          )}
+          <Button variant="outline" className="text-xs px-3 py-1" onClick={logout}>
+            Salir
+          </Button>
+        </div>
       </header>
 
       {/* Feed */}

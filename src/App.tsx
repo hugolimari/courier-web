@@ -6,6 +6,7 @@ import { PackageMapPage } from './pages/PackageMapPage';
 import { DeliverPackagePage } from './pages/DeliverPackagePage';
 import { PackageHistoryPage } from './pages/PackageHistoryPage';
 import { PublicTrackingPage } from './pages/PublicTrackingPage';
+import { ManageUsersPage } from './pages/ManageUsersPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard"             element={<DashboardPage />} />
         <Route path="/history"               element={<PackageHistoryPage />} />
+        <Route path="/users"                 element={<ManageUsersPage />} />
         <Route path="/packages/new"          element={<CreatePackagePage />} />
         <Route path="/packages/:id/map"      element={<PackageMapPage />} />
         <Route path="/packages/:id/deliver"  element={<DeliverPackagePage />} />
