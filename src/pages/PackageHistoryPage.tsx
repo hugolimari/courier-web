@@ -7,6 +7,7 @@ import { Badge, STATUS_LABELS } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { DeliveryMiniMap } from '../components/ui/DeliveryMiniMap';
+import { generatePackageReport } from '../utils/generatePackageReport';
 import type { Package, PackageFilters, PackageStatus } from '../types/package';
 
 // ── Proof Image Modal ─────────────────────────────────────────────────────────
@@ -129,6 +130,30 @@ export const PackageHistoryPage = () => {
 
   const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
+  // ── PDF export ────────────────────────────────────────────────────────────
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = () => {
+    if (packages.length === 0) return;
+    setIsExporting(true);
+    try {
+      const selectedCourier = filters.courier_id
+        ? couriers.find(c => c.id === filters.courier_id)
+        : undefined;
+
+      generatePackageReport({
+        packages,
+        filters,
+        courierName: selectedCourier
+          ? `${selectedCourier.first_name} ${selectedCourier.last_name}`
+          : undefined,
+        generatedBy: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim(),
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-surface-900 pb-12">
@@ -146,9 +171,21 @@ export const PackageHistoryPage = () => {
           <h1 className="text-lg font-bold text-white">Historial de Paquetes</h1>
           <p className="text-xs text-gray-400">{isAdmin ? 'Vista de Administrador' : 'Mis paquetes'}</p>
         </div>
-        <Button variant="outline" className="text-xs px-3 py-1" isLoading={isLoading} onClick={fetchPackages}>
-          ↻
-        </Button>
+        <div className="flex gap-2">
+          {isAdmin && packages.length > 0 && (
+            <Button
+              variant="outline"
+              className="text-xs px-3 py-1 border-green-700 text-green-400 hover:border-green-500"
+              isLoading={isExporting}
+              onClick={handleExport}
+            >
+              📄 PDF
+            </Button>
+          )}
+          <Button variant="outline" className="text-xs px-3 py-1" isLoading={isLoading} onClick={fetchPackages}>
+            ↻
+          </Button>
+        </div>
       </header>
 
       {/* Filters panel */}
