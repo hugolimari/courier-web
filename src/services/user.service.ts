@@ -38,9 +38,12 @@ export interface UpdateUserPayload {
 }
 
 export const userService = {
-  getUsers: async (role?: string): Promise<UsersResponse> => {
+  getUsers: async (role?: string, activeOnly?: boolean): Promise<UsersResponse> => {
     const response = await api.get('/users', {
-      params: role ? { role } : undefined,
+      params: {
+        ...(role       ? { role }              : {}),
+        ...(activeOnly ? { active_only: 'true' } : {}),
+      },
     });
     return response.data;
   },

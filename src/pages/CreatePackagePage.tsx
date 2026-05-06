@@ -149,8 +149,8 @@ export const CreatePackagePage = () => {
     const loadUsers = async () => {
       try {
         const [custRes, courRes] = await Promise.all([
-          userService.getUsers('CUSTOMER'),
-          userService.getUsers('COURIER'),
+          userService.getUsers('CUSTOMER', true),
+          userService.getUsers('COURIER',  true),
         ]);
         setCustomers(custRes.users as UserOption[]);
         setCouriers(courRes.users as UserOption[]);
