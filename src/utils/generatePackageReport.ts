@@ -71,7 +71,7 @@ export function generatePackageReport({
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.setTextColor([219, 234, 254] as unknown as string);
+  doc.setTextColor(...C.blueLight);
   doc.text('Reporte de Paquetes', 12, 20);
 
   doc.setFontSize(8);

@@ -149,6 +149,9 @@ export const PackageHistoryPage = () => {
           : undefined,
         generatedBy: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim(),
       });
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      setError('No se pudo generar el PDF. Intenta nuevamente.');
     } finally {
       setIsExporting(false);
     }
